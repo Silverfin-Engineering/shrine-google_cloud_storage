@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-### Added
+## 3.4.0 - 2024-01-16
 
+### Added
 - `user_project` option on storage, which enables the `userProject` option on the underlying `google-cloud-storage` client, allowing to specify a project to bill for the request for requester-pays buckets (https://cloud.google.com/storage/docs/using-requester-pays)
 
 ## 3.3.0 - 2022-08-14
