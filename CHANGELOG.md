@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - `user_project` option on storage, which enables the `userProject` option on the underlying `google-cloud-storage` client, allowing to specify a project to bill for the request for requester-pays buckets (https://cloud.google.com/storage/docs/using-requester-pays)
+- `iam` option on storage, to use IAM instead of the credentials when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
 
 ## 3.3.0 - 2022-08-14
 

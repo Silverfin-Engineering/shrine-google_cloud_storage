@@ -2,15 +2,19 @@ require "shrine"
 require "google/cloud/storage"
 require "down/chunked_io"
 
+require_relative "../../google/iam/issuer_and_signer"
+
 class Shrine
   module Storage
     class GoogleCloudStorage
+      include Google::IAM::IssuerAndSigner
+
       attr_reader :bucket, :prefix, :host
 
       # Initialize a Shrine::Storage for GCS allowing for auto-discovery of the Google::Cloud::Storage client.
       # @param [String] project Provide if not using auto discovery
       # @see http://googlecloudplatform.github.io/google-cloud-ruby/#/docs/google-cloud-storage/v1.6.0/guides/authentication#environmentvariables for information on discovery
-      def initialize(project: nil, bucket:, prefix: nil, host: nil, default_acl: nil, object_options: {}, credentials: nil, public: false, user_project: nil)
+      def initialize(project: nil, bucket:, prefix: nil, host: nil, default_acl: nil, object_options: {}, credentials: nil, public: false, user_project: nil, iam: false)
         @project = project
         @bucket = bucket
         @prefix = prefix
@@ -19,6 +23,7 @@ class Shrine
         @storage = nil
         @credentials = credentials
         @user_project = user_project
+        @iam = iam
 
         @default_acl = if public && default_acl && default_acl != "publicRead"
                          raise Shrine::Error, "You can not set both public and default_acl"
@@ -70,6 +75,11 @@ class Shrine
       # URL to the remote file, accepts options for customizing the URL
       def url(id, **options)
         if options.key? :expires
+          if @iam
+            options[:issuer] = issuer
+            options[:signer] = signer
+          end
+
           signed_url = storage.signed_url(@bucket, object_name(id), **options)
           signed_url.gsub!(/storage.googleapis.com\/#{@bucket}/, @host) if @host
           signed_url
@@ -135,6 +145,11 @@ class Shrine
 
       # returns request data (:method, :url, and :headers) for direct uploads
       def presign(id, **options)
+        if @iam
+          options[:issuer] = issuer
+          options[:signer] = signer
+        end
+
         url = storage.signed_url(@bucket, object_name(id), method: "PUT", **options)
 
         headers = {}
